@@ -7,6 +7,9 @@ type Language = {
   label: string;
 };
 
+const LANG_KEY = "agc:language";
+const STYLE_KEY = "agc:style";
+
 const LANGUAGES: Language[] = [
   { value: "Português do Brasil (pt-BR)", label: "Português (Brasil)" },
   { value: "Português de Portugal (pt-PT)", label: "Português (Portugal)" },
@@ -40,8 +43,28 @@ function pickDelay(value: string): number {
 
 export default function Home() {
   const [text, setText] = useState("");
-  const [language, setLanguage] = useState(LANGUAGES[0].value);
-  const [style, setStyle] = useState<Style>("Simples");
+  const [language, setLanguage] = useState<string>(() => {
+    if (typeof window === "undefined") return LANGUAGES[0].value;
+    const saved = window.localStorage.getItem(LANG_KEY);
+    return saved && LANGUAGES.some((l) => l.value === saved)
+      ? saved
+      : LANGUAGES[0].value;
+  });
+  const [style, setStyle] = useState<Style>(() => {
+    if (typeof window === "undefined") return "Simples";
+    const saved = window.localStorage.getItem(STYLE_KEY);
+    return saved && (STYLES as readonly string[]).includes(saved)
+      ? (saved as Style)
+      : "Simples";
+  });
+
+  useEffect(() => {
+    window.localStorage.setItem(LANG_KEY, language);
+  }, [language]);
+
+  useEffect(() => {
+    window.localStorage.setItem(STYLE_KEY, style);
+  }, [style]);
 
   const [output, setOutput] = useState("");
   const [status, setStatus] = useState<
