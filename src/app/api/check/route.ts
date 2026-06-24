@@ -54,16 +54,19 @@ export async function POST(req: NextRequest) {
   const system = `${SYSTEM_PROMPT} Idioma de escrita esperado: ${language}. Tom/estilo desejado: ${style}.`;
   const user = `Corrija o texto a seguir (idioma: ${language}; estilo: ${style}):\n\n${text}`;
 
+  const headers: Record<string, string> = {
+    Authorization: `Bearer ${apiKey}`,
+    "Content-Type": "application/json",
+    "X-Title": "AI Grammar Check",
+  };
+  const referer = req.headers.get("origin");
+  if (referer) headers["HTTP-Referer"] = referer;
+
   let upstream: Response;
   try {
     upstream = await fetch(ENDPOINT, {
       method: "POST",
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
-        "HTTP-Referer": req.headers.get("origin") ?? "",
-        "X-Title": "AI Grammar Check",
-      },
+      headers,
       body: JSON.stringify({
         model: MODEL,
         stream: true,
