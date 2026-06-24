@@ -1,12 +1,10 @@
 import { NextRequest } from "next/server";
 
-// Node.js runtime: o fetch global (undici interno do Node) reutiliza conexões
-// HTTP/1.1 com keep-alive por padrão entre requisições no mesmo processo
-// (dev server), evitando refazer TLS handshake a cada chamada ao OpenRouter.
-export const runtime = "nodejs";
+// Edge runtime: na Vercel, é o único que suporta streaming de verdade com
+// ReadableStream. Tempo limite maior no Hobby (~25s) e melhor para respostas
+// streaming de LLMs.
+export const runtime = "edge";
 export const dynamic = "force-dynamic";
-// Vercel Hobby: serverless functions limitadas a 10s. Ajuste para 60 no plano Pro.
-export const maxDuration = 10;
 
 const MODEL = process.env.OPENROUTER_MODEL ?? "google/gemini-2.5-flash-lite";
 const ENDPOINT = "https://openrouter.ai/api/v1/chat/completions";
@@ -77,8 +75,13 @@ export async function POST(req: NextRequest) {
         ],
       }),
     });
-  } catch {
-    return new Response("Falha ao contatar o OpenRouter.", { status: 502 });
+  } catch (err) {
+    const msg =
+      err instanceof Error ? `${err.name}: ${err.message}` : String(err);
+    return new Response(
+      `Falha ao contatar o OpenRouter: ${msg}`,
+      { status: 502 },
+    );
   }
 
   if (!upstream.ok || !upstream.body) {
