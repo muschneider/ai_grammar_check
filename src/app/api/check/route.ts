@@ -43,9 +43,17 @@ export async function POST(req: NextRequest) {
     return new Response("Estilo ausente", { status: 400 });
   }
 
-  // trim() remove quebras de linha/espaços colados ao copiar a key na Vercel,
-  // que causariam "Invalid header value" no header Authorization.
-  const apiKey = process.env.OPENROUTER_API_KEY?.trim();
+  // A key do OpenRouter é composta apenas por caracteres ASCII imprimíveis
+  // (ex.: "sk-or-v1-...."). Ao colar a key no painel da Vercel é comum entrar
+  // junto algum caractere invisível — quebra de linha no meio do valor (o
+  // campo quebra linhas longas), espaço, NBSP, zero-width space ou BOM. Esses
+  // caracteres geram "TypeError: Invalid header value" ao montar o header
+  // Authorization. trim() só limpa as pontas, então removemos TODO caractere
+  // fora da faixa ASCII imprimível, em qualquer posição.
+  const apiKey = (process.env.OPENROUTER_API_KEY ?? "").replace(
+    /[^\x21-\x7E]/g,
+    "",
+  );
   if (!apiKey) {
     return new Response(
       "OPENROUTER_API_KEY não configurada no servidor.",
