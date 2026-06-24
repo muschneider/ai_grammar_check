@@ -43,10 +43,12 @@ export async function POST(req: NextRequest) {
     return new Response("Estilo ausente", { status: 400 });
   }
 
-  const apiKey = process.env.OPENROUTER_API_KEY;
+  // trim() remove quebras de linha/espaços colados ao copiar a key na Vercel,
+  // que causariam "Invalid header value" no header Authorization.
+  const apiKey = process.env.OPENROUTER_API_KEY?.trim();
   if (!apiKey) {
     return new Response(
-      "OPENROUTER_API_KEY não configurada no servidor (.env.local).",
+      "OPENROUTER_API_KEY não configurada no servidor.",
       { status: 500 },
     );
   }
@@ -54,13 +56,12 @@ export async function POST(req: NextRequest) {
   const system = `${SYSTEM_PROMPT} Idioma de escrita esperado: ${language}. Tom/estilo desejado: ${style}.`;
   const user = `Corrija o texto a seguir (idioma: ${language}; estilo: ${style}):\n\n${text}`;
 
+  // HTTP-Referer/X-Title são opcionais no OpenRouter (só rankings). Removidos
+  // para evitar qualquer "Invalid header value" vindo de valores vazios.
   const headers: Record<string, string> = {
     Authorization: `Bearer ${apiKey}`,
     "Content-Type": "application/json",
-    "X-Title": "AI Grammar Check",
   };
-  const referer = req.headers.get("origin");
-  if (referer) headers["HTTP-Referer"] = referer;
 
   let upstream: Response;
   try {
