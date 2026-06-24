@@ -1,0 +1,32 @@
+[tools]
+node = "latest"
+pnpm = "latest"
+
+[tasks.install]
+description = "Install project dependencies"
+run = "pnpm install"
+
+[tasks.dev]
+description = "Start Next.js dev server"
+depends = ["install"]
+run = "pnpm dev"
+
+[tasks.build]
+description = "Build production bundle"
+depends = ["install"]
+run = "pnpm build"
+
+[tasks.start]
+description = "Start production server"
+depends = ["build"]
+run = "pnpm start"
+
+[tasks.lint]
+description = "Lint the project"
+depends = ["install"]
+run = "pnpm lint"
+
+[tasks.typecheck]
+description = "Run TypeScript type checking"
+depends = ["install"]
+run = "pnpm tsc --noEmit"
