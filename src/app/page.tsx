@@ -209,35 +209,37 @@ export default function Home() {
 
   return (
     <main className="flex flex-1 flex-col">
-      <header className="border-b border-zinc-200 bg-white/70 backdrop-blur dark:border-zinc-800 dark:bg-black/40">
-        <div className="mx-auto flex max-w-6xl flex-col gap-1 px-6 py-5">
-          <h1 className="text-2xl font-semibold tracking-tight">
-            AI Grammar Check
-          </h1>
-          <p className="text-sm text-zinc-500 dark:text-zinc-400">
-            Correção gramatical e de estilo em tempo real, alimentada por IA
-            via OpenRouter.
-          </p>
+      <header className="sticky top-0 z-10 border-b border-zinc-200 bg-white/80 backdrop-blur dark:border-zinc-800 dark:bg-black/50">
+        <div className="mx-auto flex max-w-6xl items-start gap-3 px-4 py-3 sm:px-6 sm:py-5">
+          <div className="flex min-w-0 flex-col gap-0.5 sm:gap-1">
+            <h1 className="text-lg font-semibold tracking-tight sm:text-2xl">
+              AI Grammar Check
+            </h1>
+            <p className="text-xs text-zinc-500 sm:text-sm dark:text-zinc-400">
+              Correção gramatical e de estilo em tempo real, alimentada por IA
+              via OpenRouter.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={handleLogout}
+            className="ml-auto shrink-0 rounded-md border border-zinc-300 px-3 py-2 text-sm font-medium text-zinc-700 transition hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-900"
+          >
+            Sair
+          </button>
         </div>
-        <button
-          type="button"
-          onClick={handleLogout}
-          className="absolute right-6 top-5 rounded-md border border-zinc-300 px-3 py-1.5 text-sm font-medium text-zinc-700 transition hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-900"
-        >
-          Sair
-        </button>
       </header>
 
-      <section className="mx-auto grid w-full max-w-6xl flex-1 grid-cols-1 gap-4 px-6 py-6 lg:grid-cols-2">
+      <section className="mx-auto grid w-full max-w-6xl flex-1 grid-cols-1 gap-4 px-4 py-4 sm:px-6 sm:py-6 lg:grid-cols-2">
         {/* Coluna de entrada */}
         <div className="flex flex-col rounded-xl border border-zinc-200 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
-          <div className="flex flex-wrap items-center gap-3 border-b border-zinc-200 px-4 py-3 dark:border-zinc-800">
-            <label className="flex flex-col gap-1 text-xs font-medium text-zinc-600 dark:text-zinc-400">
+          <div className="flex flex-wrap items-end gap-2 border-b border-zinc-200 px-3 py-3 sm:gap-3 sm:px-4 dark:border-zinc-800">
+            <label className="flex flex-1 basis-32 flex-col gap-1 text-xs font-medium text-zinc-600 dark:text-zinc-400">
               Idioma
               <select
                 value={language}
                 onChange={(e) => setLanguage(e.target.value)}
-                className="rounded-md border border-zinc-300 bg-white px-2 py-1.5 text-sm text-zinc-900 shadow-sm focus:border-zinc-500 focus:outline-none dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100"
+                className="w-full rounded-md border border-zinc-300 bg-white px-2 py-2 text-base text-zinc-900 shadow-sm focus:border-zinc-500 focus:outline-none sm:py-1.5 sm:text-sm dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100"
               >
                 {LANGUAGES.map((l) => (
                   <option key={l.value} value={l.value}>
@@ -247,12 +249,12 @@ export default function Home() {
               </select>
             </label>
 
-            <label className="flex flex-col gap-1 text-xs font-medium text-zinc-600 dark:text-zinc-400">
+            <label className="flex flex-1 basis-32 flex-col gap-1 text-xs font-medium text-zinc-600 dark:text-zinc-400">
               Estilo
               <select
                 value={style}
                 onChange={(e) => setStyle(e.target.value as Style)}
-                className="rounded-md border border-zinc-300 bg-white px-2 py-1.5 text-sm text-zinc-900 shadow-sm focus:border-zinc-500 focus:outline-none dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100"
+                className="w-full rounded-md border border-zinc-300 bg-white px-2 py-2 text-base text-zinc-900 shadow-sm focus:border-zinc-500 focus:outline-none sm:py-1.5 sm:text-sm dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100"
               >
                 {STYLES.map((s) => (
                   <option key={s} value={s}>
@@ -265,7 +267,7 @@ export default function Home() {
             <button
               type="button"
               onClick={handleClear}
-              className="ml-auto rounded-md border border-zinc-300 px-3 py-1.5 text-sm font-medium text-zinc-700 transition hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-900"
+              className="ml-auto rounded-md border border-zinc-300 px-3 py-2 text-sm font-medium text-zinc-700 transition hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-900"
             >
               Limpar
             </button>
@@ -276,7 +278,7 @@ export default function Home() {
             onChange={(e) => handleTextChange(e.target.value)}
             placeholder="Digite ou cole aqui o seu texto…"
             spellCheck={false}
-            className="preserve-lines min-h-[18rem] flex-1 resize-none bg-transparent px-4 py-3 text-base leading-7 text-zinc-900 placeholder:text-zinc-400 focus:outline-none dark:text-zinc-100 dark:placeholder:text-zinc-600"
+            className="preserve-lines min-h-[14rem] flex-1 resize-none bg-transparent px-4 py-3 text-base leading-7 text-zinc-900 placeholder:text-zinc-400 focus:outline-none sm:min-h-[18rem] dark:text-zinc-100 dark:placeholder:text-zinc-600"
           />
           <div className="border-t border-zinc-200 px-4 py-2 text-right text-xs text-zinc-500 dark:border-zinc-800 dark:text-zinc-400">
             {text.length} caracteres · {text.trim() ? text.trim().split(/\s+/).length : 0} palavras
@@ -285,7 +287,7 @@ export default function Home() {
 
         {/* Coluna de correção */}
         <div className="flex flex-col rounded-xl border border-zinc-200 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
-          <div className="flex items-center justify-between border-b border-zinc-200 px-4 py-3 dark:border-zinc-800">
+          <div className="flex items-center justify-between border-b border-zinc-200 px-3 py-3 sm:px-4 dark:border-zinc-800">
             <div className="flex items-center gap-2 text-sm font-medium text-zinc-700 dark:text-zinc-300">
               <span
                 className={[
@@ -307,13 +309,13 @@ export default function Home() {
               type="button"
               onClick={handleCopy}
               disabled={!output}
-              className="rounded-md border border-zinc-300 px-3 py-1.5 text-sm font-medium text-zinc-700 transition hover:bg-zinc-100 disabled:cursor-not-allowed disabled:opacity-50 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-900"
+              className="rounded-md border border-zinc-300 px-3 py-2 text-sm font-medium text-zinc-700 transition hover:bg-zinc-100 disabled:cursor-not-allowed disabled:opacity-50 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-900"
             >
               Copiar
             </button>
           </div>
 
-          <div className="preserve-lines min-h-[18rem] flex-1 px-4 py-3 text-base leading-7">
+          <div className="preserve-lines min-h-[14rem] flex-1 px-4 py-3 text-base leading-7 sm:min-h-[18rem]">
             {output ? (
               <span
                 className={status === "streaming" ? "opacity-95" : undefined}
@@ -345,7 +347,7 @@ export default function Home() {
         </div>
       </section>
 
-      <footer className="border-t border-zinc-200 px-6 py-3 text-center text-xs text-zinc-500 dark:border-zinc-800 dark:text-zinc-400">
+      <footer className="border-t border-zinc-200 px-4 py-3 text-center text-xs text-zinc-500 sm:px-6 dark:border-zinc-800 dark:text-zinc-400">
         Modelo: <code className="font-mono">google/gemini-2.5-flash-lite</code>{" "}
         via OpenRouter · Gatilho: {QUICK_MS}ms (fim de palavra) / {IDLE_MS}ms
         (inatividade)
