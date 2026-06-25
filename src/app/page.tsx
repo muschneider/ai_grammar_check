@@ -213,12 +213,9 @@ export default function Home() {
         <div className="mx-auto flex max-w-6xl items-start gap-3 px-4 py-3 sm:px-6 sm:py-5">
           <div className="flex min-w-0 flex-col gap-0.5 sm:gap-1">
             <h1 className="text-lg font-semibold tracking-tight sm:text-2xl">
-              AI Grammar Check
+              Grammar Check
             </h1>
-            <p className="text-xs text-zinc-500 sm:text-sm dark:text-zinc-400">
-              Correção gramatical e de estilo em tempo real, alimentada por IA
-              via OpenRouter.
-            </p>
+            <p className="text-xs text-zinc-500 sm:text-sm dark:text-zinc-400"></p>
           </div>
           <button
             type="button"
@@ -281,7 +278,8 @@ export default function Home() {
             className="preserve-lines min-h-[14rem] flex-1 resize-none bg-transparent px-4 py-3 text-base leading-7 text-zinc-900 placeholder:text-zinc-400 focus:outline-none sm:min-h-[18rem] dark:text-zinc-100 dark:placeholder:text-zinc-600"
           />
           <div className="border-t border-zinc-200 px-4 py-2 text-right text-xs text-zinc-500 dark:border-zinc-800 dark:text-zinc-400">
-            {text.length} caracteres · {text.trim() ? text.trim().split(/\s+/).length : 0} palavras
+            {text.length} caracteres ·{" "}
+            {text.trim() ? text.trim().split(/\s+/).length : 0} palavras
           </div>
         </div>
 
@@ -355,3 +353,4 @@ export default function Home() {
     </main>
   );
 }
+
