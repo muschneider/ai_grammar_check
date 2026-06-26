@@ -208,29 +208,13 @@ export default function Home() {
   };
 
   return (
-    <main className="flex flex-1 flex-col">
-      <header className="sticky top-0 z-10 border-b border-zinc-200 bg-white/80 backdrop-blur dark:border-zinc-800 dark:bg-black/50">
-        <div className="mx-auto flex max-w-6xl items-start gap-3 px-4 py-3 sm:px-6 sm:py-5">
-          <div className="flex min-w-0 flex-col gap-0.5 sm:gap-1">
-            <h1 className="text-lg font-semibold tracking-tight sm:text-2xl">
-              Grammar Check
-            </h1>
-            <p className="text-xs text-zinc-500 sm:text-sm dark:text-zinc-400"></p>
-          </div>
-          <button
-            type="button"
-            onClick={handleLogout}
-            className="ml-auto shrink-0 rounded-md border border-zinc-300 px-3 py-2 text-sm font-medium text-zinc-700 transition hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-900"
-          >
-            Sair
-          </button>
-        </div>
-      </header>
+    <main className="flex min-h-dvh flex-1 flex-col md:h-dvh md:overflow-hidden">
+      <h1 className="sr-only">AI Grammar Check</h1>
 
-      <section className="mx-auto grid w-full max-w-6xl flex-1 grid-cols-1 gap-4 px-4 py-4 sm:px-6 sm:py-6 lg:grid-cols-2">
+      <section className="mx-auto flex w-full max-w-[1800px] flex-1 flex-col gap-3 px-4 py-3 sm:gap-4 sm:px-6 sm:py-4 md:min-h-0 md:flex-row">
         {/* Coluna de entrada */}
-        <div className="flex flex-col rounded-xl border border-zinc-200 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
-          <div className="flex flex-wrap items-end gap-2 border-b border-zinc-200 px-3 py-3 sm:gap-3 sm:px-4 dark:border-zinc-800">
+        <div className="flex min-h-0 min-w-0 flex-col overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-sm md:flex-1 dark:border-zinc-800 dark:bg-zinc-950">
+          <div className="flex shrink-0 flex-wrap items-end gap-2 border-b border-zinc-200 px-3 py-3 sm:gap-3 sm:px-4 dark:border-zinc-800">
             <label className="flex flex-1 basis-32 flex-col gap-1 text-xs font-medium text-zinc-600 dark:text-zinc-400">
               Idioma
               <select
@@ -275,17 +259,17 @@ export default function Home() {
             onChange={(e) => handleTextChange(e.target.value)}
             placeholder="Digite ou cole aqui o seu texto…"
             spellCheck={false}
-            className="preserve-lines min-h-[14rem] flex-1 resize-none bg-transparent px-4 py-3 text-base leading-7 text-zinc-900 placeholder:text-zinc-400 focus:outline-none sm:min-h-[18rem] dark:text-zinc-100 dark:placeholder:text-zinc-600"
+            className="preserve-lines min-h-[14rem] flex-1 resize-none overflow-auto bg-transparent px-4 py-3 text-base leading-7 text-zinc-900 placeholder:text-zinc-400 focus:outline-none md:min-h-0 dark:text-zinc-100 dark:placeholder:text-zinc-600"
           />
-          <div className="border-t border-zinc-200 px-4 py-2 text-right text-xs text-zinc-500 dark:border-zinc-800 dark:text-zinc-400">
+          <div className="shrink-0 border-t border-zinc-200 px-4 py-2 text-right text-xs text-zinc-500 dark:border-zinc-800 dark:text-zinc-400">
             {text.length} caracteres ·{" "}
             {text.trim() ? text.trim().split(/\s+/).length : 0} palavras
           </div>
         </div>
 
         {/* Coluna de correção */}
-        <div className="flex flex-col rounded-xl border border-zinc-200 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
-          <div className="flex items-center justify-between border-b border-zinc-200 px-3 py-3 sm:px-4 dark:border-zinc-800">
+        <div className="flex min-h-0 min-w-0 flex-col overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-sm md:flex-1 dark:border-zinc-800 dark:bg-zinc-950">
+          <div className="flex shrink-0 items-center justify-between border-b border-zinc-200 px-3 py-3 sm:px-4 dark:border-zinc-800">
             <div className="flex items-center gap-2 text-sm font-medium text-zinc-700 dark:text-zinc-300">
               <span
                 className={[
@@ -303,17 +287,26 @@ export default function Home() {
               {status === "streaming" && "Corrigindo…"}
               {status === "error" && "Erro"}
             </div>
-            <button
-              type="button"
-              onClick={handleCopy}
-              disabled={!output}
-              className="rounded-md border border-zinc-300 px-3 py-2 text-sm font-medium text-zinc-700 transition hover:bg-zinc-100 disabled:cursor-not-allowed disabled:opacity-50 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-900"
-            >
-              Copiar
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={handleCopy}
+                disabled={!output}
+                className="rounded-md border border-zinc-300 px-3 py-2 text-sm font-medium text-zinc-700 transition hover:bg-zinc-100 disabled:cursor-not-allowed disabled:opacity-50 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-900"
+              >
+                Copiar
+              </button>
+              <button
+                type="button"
+                onClick={handleLogout}
+                className="rounded-md border border-zinc-300 px-3 py-2 text-sm font-medium text-zinc-700 transition hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-900"
+              >
+                Sair
+              </button>
+            </div>
           </div>
 
-          <div className="preserve-lines min-h-[14rem] flex-1 px-4 py-3 text-base leading-7 sm:min-h-[18rem]">
+          <div className="preserve-lines min-h-[14rem] flex-1 overflow-auto px-4 py-3 text-base leading-7 md:min-h-0">
             {output ? (
               <span
                 className={status === "streaming" ? "opacity-95" : undefined}
@@ -338,14 +331,14 @@ export default function Home() {
               </span>
             )}
           </div>
-          <div className="border-t border-zinc-200 px-4 py-2 text-right text-xs text-zinc-500 dark:border-zinc-800 dark:text-zinc-400">
+          <div className="shrink-0 border-t border-zinc-200 px-4 py-2 text-right text-xs text-zinc-500 dark:border-zinc-800 dark:text-zinc-400">
             {output.length} caracteres ·{" "}
             {output.trim() ? output.trim().split(/\s+/).length : 0} palavras
           </div>
         </div>
       </section>
 
-      <footer className="border-t border-zinc-200 px-4 py-3 text-center text-xs text-zinc-500 sm:px-6 dark:border-zinc-800 dark:text-zinc-400">
+      <footer className="shrink-0 border-t border-zinc-200 px-4 py-2.5 text-center text-xs text-zinc-500 sm:px-6 dark:border-zinc-800 dark:text-zinc-400">
         Modelo: <code className="font-mono">google/gemini-2.5-flash-lite</code>{" "}
         via OpenRouter · Gatilho: {QUICK_MS}ms (fim de palavra) / {IDLE_MS}ms
         (inatividade)
