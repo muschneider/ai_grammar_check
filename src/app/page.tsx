@@ -25,20 +25,24 @@ const LANGUAGES: Language[] = [
 const STYLES = ["Simples", "Corporativo", "Acadêmico", "Coloquial"] as const;
 type Style = (typeof STYLES)[number];
 
-// Heurística de gatilho:
-//  - QUICK_MS: delay curto usado quando o último caractere é um separador
-//    de palavra (espaço, pontuação) => "terminou de digitar uma palavra".
-//  - IDLE_MS:  delay maior usado enquanto digita-se no meio de uma palavra
-//    => "ficou um determinado tempo sem digitar".
-const QUICK_MS = 250;
-const IDLE_MS = 1500;
+// Heurística de gatilho da correção automática:
+//  - SENTENCE_MS: delay curto-moderado quando o texto termina uma frase
+//    (. ! ? … ou nova linha) => provável pausa real do usuário.
+//  - IDLE_MS:     delay maior para qualquer outra digitação (inclui espaço)
+//    => só dispara depois que o usuário fica realmente parado.
+//  - MIN_CHARS:   comprimento mínimo para o disparo automático, evitando
+//    gastar tokens com fragmentos iniciais.
+// O espaço entre palavras deixou de ser gatilho (causava checagens no meio
+// da frase a cada palavra digitada).
+const SENTENCE_MS = 800;
+const IDLE_MS = 2000;
+const MIN_CHARS = 8;
 
-// Caracteres que delimitam uma palavra/frase para a heurística.
-const WORD_BOUNDARY =
-  /[\s.,;:!?\u2026\u2013\u2014()\[\]{}"'«»#\u00bf\u00a1\u00ab\u00bb]$/;
+// Fim de frase real, permitindo espaços/quebras ao final.
+const SENTENCE_END = /[.!?\u2026\n]\s*$/;
 
 function pickDelay(value: string): number {
-  return WORD_BOUNDARY.test(value) ? QUICK_MS : IDLE_MS;
+  return SENTENCE_END.test(value) ? SENTENCE_MS : IDLE_MS;
 }
 
 export default function Home() {
@@ -74,6 +78,12 @@ export default function Home() {
 
   const abortRef = useRef<AbortController | null>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Última assinatura (idioma|estilo|texto) já enviada para correção. Evita
+  // reprocessar conteúdo idêntico (ex.: digitar um espaço e apagar).
+  const lastCheckedRef = useRef<string>("");
+  // Sinaliza composição IME (acentos, teclados mobile/asiáticos) em andamento.
+  const isComposingRef = useRef(false);
 
   // Buffer de chunks + rAF: agrupa múltiplos deltas em uma única atualação de
   // estado por frame, reduzindo drasticamente as re-renderizações do React.
@@ -152,6 +162,8 @@ export default function Home() {
         setStatus("idle");
       } catch (err) {
         if ((err as Error).name === "AbortError") return;
+        // Libera a dedup para permitir nova tentativa automática ao digitar.
+        lastCheckedRef.current = "";
         setStatus("error");
         setError((err as Error).message || "Falha na requisição");
       }
@@ -159,24 +171,44 @@ export default function Home() {
     [flushBuffer, scheduleFlush],
   );
 
-  // Correção automática com heurística:
-  //   1) ao digitar o último caractere como separador de palavra → dispara após QUICK_MS;
-  //   2) enquanto digita no meio de uma palavra → dispara após IDLE_MS de inatividade.
+  // Agenda a correção automática conforme a heurística e as guardas:
+  //   - ignora texto vazio, curto demais ou em composição (IME);
+  //   - deduplica: não reprocessa a mesma assinatura idioma|estilo|texto;
+  //   - delay curto ao fim de frase, maior durante a digitação.
   // Cada nova tecla reinicia o contador (idle reset).
-  useEffect(() => {
+  const scheduleAutoCheck = useCallback(() => {
     if (debounceRef.current) clearTimeout(debounceRef.current);
     if (!trimmed) return;
+    if (isComposingRef.current) return;
+    if (trimmed.length < MIN_CHARS) return;
+    const sig = `${language}|${style}|${trimmed}`;
+    if (sig === lastCheckedRef.current) return;
     const delay = pickDelay(text);
     debounceRef.current = setTimeout(() => {
+      lastCheckedRef.current = sig;
       void runCheck(text, language, style);
     }, delay);
+  }, [text, trimmed, language, style, runCheck]);
+
+  useEffect(() => {
+    scheduleAutoCheck();
     return () => {
       if (debounceRef.current) clearTimeout(debounceRef.current);
     };
-  }, [text, language, style, trimmed, runCheck]);
+  }, [scheduleAutoCheck]);
+
+  // Dispara imediatamente (Ctrl/Cmd+Enter), ignorando debounce, mínimo e dedup.
+  const triggerNow = useCallback(() => {
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    const t = text.trim();
+    if (!t) return;
+    lastCheckedRef.current = `${language}|${style}|${t}`;
+    void runCheck(text, language, style);
+  }, [text, language, style, runCheck]);
 
   const handleClear = () => {
     abortRef.current?.abort();
+    lastCheckedRef.current = "";
     setText("");
     setOutput("");
     setError("");
@@ -187,6 +219,7 @@ export default function Home() {
     setText(value);
     if (!value.trim()) {
       abortRef.current?.abort();
+      lastCheckedRef.current = "";
       setOutput("");
       setError("");
       setStatus("idle");
@@ -257,6 +290,19 @@ export default function Home() {
           <textarea
             value={text}
             onChange={(e) => handleTextChange(e.target.value)}
+            onKeyDown={(e) => {
+              if ((e.metaKey || e.ctrlKey) && e.key === "Enter") {
+                e.preventDefault();
+                triggerNow();
+              }
+            }}
+            onCompositionStart={() => {
+              isComposingRef.current = true;
+            }}
+            onCompositionEnd={() => {
+              isComposingRef.current = false;
+              scheduleAutoCheck();
+            }}
             placeholder="Digite ou cole aqui o seu texto…"
             spellCheck={false}
             className="preserve-lines min-h-[14rem] flex-1 resize-none overflow-auto bg-transparent px-4 py-3 text-base leading-7 text-zinc-900 placeholder:text-zinc-400 focus:outline-none md:min-h-0 dark:text-zinc-100 dark:placeholder:text-zinc-600"
@@ -340,8 +386,9 @@ export default function Home() {
 
       <footer className="shrink-0 border-t border-zinc-200 px-4 py-2.5 text-center text-xs text-zinc-500 sm:px-6 dark:border-zinc-800 dark:text-zinc-400">
         Modelo: <code className="font-mono">google/gemini-2.5-flash-lite</code>{" "}
-        via OpenRouter · Gatilho: {QUICK_MS}ms (fim de palavra) / {IDLE_MS}ms
-        (inatividade)
+        via OpenRouter · Gatilho: {SENTENCE_MS}ms (fim de frase) / {IDLE_MS}ms
+        (inatividade) · mín. {MIN_CHARS} caracteres ·{" "}
+        <kbd className="font-mono">Ctrl/Cmd+Enter</kbd> para corrigir agora
       </footer>
     </main>
   );
