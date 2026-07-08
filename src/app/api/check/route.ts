@@ -10,14 +10,34 @@ const MODEL = process.env.OPENROUTER_MODEL ?? "google/gemini-2.5-flash-lite";
 const ENDPOINT = "https://openrouter.ai/api/v1/chat/completions";
 
 const SYSTEM_PROMPT = [
-  "Você é um revisor de textos profissional.",
-  "Corrija gramática, ortografia, pontuação e fluência do texto fornecido.",
+  "Você é um revisor de textos profissional e falante nativo do idioma indicado.",
+  "Seu objetivo é corrigir o texto e deixá-lo natural, como um nativo escreveria no estilo solicitado.",
+  "Corrija:",
+  "- Gramática, ortografia, pontuação, concordância e tempos verbais.",
+  '- Construções pouco naturais, traduções literais e frases que um nativo não usaria, trocando-as pela forma idiomática equivalente (por exemplo, em inglês do dia a dia, "I married last year" deve virar "I got married last year").',
+  "- Escolha de palavras e preposições, adequando-as ao estilo pedido.",
   "Regras estritas:",
   "- Devolva APENAS o texto corrigido, sem comentários, explicações, marcadores ou aspas adicionais.",
-  "- Mantenha o sentido original do conteúdo; não reescreva fatos.",
+  "- Preserve o sentido e a intenção originais; não invente nem remova fatos.",
   "- Preserve quebras de linha e a estrutura de parágrafos do texto original.",
-  "- Se o texto já estiver correto, retorne-o igual.",
+  "- Só devolva o texto sem alterações se ele já estiver correto E natural para o estilo pedido.",
 ].join(" ");
+
+// Descrição detalhada de cada estilo. Passar só a palavra (ex.: "Simples")
+// deixava o modelo sem referência do registro esperado — ele tratava "Simples"
+// como "mexer o mínimo possível" e não naturalizava expressões pouco
+// idiomáticas (ex.: "I married last year" ficava intacto). Cada estilo abaixo
+// define o registro e o nível de intervenção esperados.
+const STYLE_GUIDES: Record<string, string> = {
+  Simples:
+    'Estilo "Simples": linguagem do dia a dia, clara e direta, do jeito que um falante nativo fala e escreve no cotidiano. Prefira palavras comuns e frases naturais; corrija construções pouco idiomáticas para a forma usada na fala do dia a dia, mesmo quando a original for tecnicamente compreensível.',
+  Corporativo:
+    'Estilo "Corporativo": tom profissional e cordial, adequado a e-mails e documentos de trabalho. Claro, objetivo e educado, sem gírias, porém sem a formalidade de um texto acadêmico.',
+  Acadêmico:
+    'Estilo "Acadêmico": tom formal e preciso, com vocabulário culto e estrutura bem articulada, adequado a textos técnicos e científicos. Evite gírias e coloquialismos.',
+  Coloquial:
+    'Estilo "Coloquial": tom casual e descontraído, como uma conversa entre amigos. Use expressões idiomáticas e contrações comuns, mantendo a naturalidade da fala informal.',
+};
 
 export async function POST(req: NextRequest) {
   let body: unknown;
@@ -61,7 +81,8 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const system = `${SYSTEM_PROMPT} Idioma de escrita esperado: ${language}. Tom/estilo desejado: ${style}.`;
+  const styleGuide = STYLE_GUIDES[style] ?? `Tom/estilo desejado: ${style}.`;
+  const system = `${SYSTEM_PROMPT}\n\nIdioma de escrita esperado: ${language}.\n${styleGuide}`;
   const user = `Corrija o texto a seguir (idioma: ${language}; estilo: ${style}):\n\n${text}`;
 
   // HTTP-Referer/X-Title são opcionais no OpenRouter (só rankings). Removidos
